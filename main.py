@@ -135,9 +135,14 @@ async def initialize_ml_model():
         return Response("Model ready!")
 
 @app.post("/ml/inference")
-def inference(data: str):
+def inference(data: Annotated[str, Form(...)]):
     global model
-    res = model(data)
+    if model:
+        logger.info("Predicting...")
+        res = model(data)
+    else:
+        return Response("Model not loaded.")
+    logger.info(f"Result: {res}")
     return HTMLResponse(f"<div> Prediction: {res.label} <br> </div>")
 
 # Helpers
