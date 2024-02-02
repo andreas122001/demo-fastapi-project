@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>FastAPI Demo</title>
+    <script src="https://unpkg.com/htmx.org@1.7.0/dist/htmx.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="dark bg-gray-800">
+    <main class="text-white m-10">
+      <h1>EXAMPLE API</h1>
+      <button
+        hx-get="/meme"
+        hx-target="#meme"
+        hx-swap="innerHTML"
+        class="m-3 bg-blue-700 hover:bg-blue-800 rounded-full text-sm px-5 py-2.5 text-center"
+      >Refresh meme</button>
+      <div
+        id="meme"
+        hx-get="/meme"
+        hx-target="#meme"
+        hx-swap="innerHTML"
+        hx-trigger="load once"
+      >Waiting for Meme API...</div>
+      <!-- <div id="meme"></div> -->
+
+    </main>
+  </body>
+</html>

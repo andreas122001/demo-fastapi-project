@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>FastAPI Demo</title>
+    <script src="https://unpkg.com/htmx.org@1.7.0/dist/htmx.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="dark bg-gray-800">
+    <main class="text-white m-10">
+      <h1>Login</h1>
+        <form class="outline-black" 
+        hx-post="/login"
+        method="post">
+          <input name="username" class="m-2 text-black" type="text" placeholder="Username"/> <br>
+          <input name="password" class="m-2 text-black" type="password" placeholder="Password"/> <br>
+          <button 
+          class="text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2"
+          type="sumbit"
+          >Login</button>
+        </form>
+    </main>
+  </body>
+</html>
