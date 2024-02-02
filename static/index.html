@@ -7,25 +7,27 @@
     <title>FastAPI Demo</title>
     <script src="https://unpkg.com/htmx.org@1.7.0/dist/htmx.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
   </head>
   <body class="dark bg-gray-800">
-    <main class="text-white m-10">
-      <h1>EXAMPLE API</h1>
-      <button
-        hx-get="/meme"
-        hx-target="#meme"
-        hx-swap="innerHTML"
-        class="m-3 bg-blue-700 hover:bg-blue-800 rounded-full text-sm px-5 py-2.5 text-center"
-      >Refresh meme</button>
-      <div
-        id="meme"
-        hx-get="/meme"
-        hx-target="#meme"
-        hx-swap="innerHTML"
-        hx-trigger="load once"
-      >Waiting for Meme API...</div>
-      <!-- <div id="meme"></div> -->
+    <a href="/" class="text-white m-4"><i class="fa fa-home text-3xl m-3"></i></a>
 
+    <main class="text-white m-10">
+      <h1># index.html </h1>
+      <table class="float-left text-blue-500">
+        <tr>
+          <td><a href="/login" class="hover:underline">login</a></td>
+        </tr>
+        <tr>
+          <td><a href="/register" class="hover:underline">register</a></td>
+        </tr>
+        <tr>
+          <td><a href="/meme" class="hover:underline">memes</a></td>
+        </tr>
+        <tr>
+          <td><a href="/ml" class="hover:underline">ml</a></td>
+        </tr>
     </main>
   </body>
 </html>

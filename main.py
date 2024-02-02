@@ -1,5 +1,5 @@
 from typing import Annotated
-from fastapi import FastAPI, Request, Form
+from fastapi import FastAPI, Request, Form, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -37,7 +37,8 @@ class User(BaseModel):
 
 # Dummy db
 db = [
-    User(username="andrebw", password="123")
+    User(username="user", password="user"),
+    User(username="admin", password="admin")
 ]
 
 # ===INDEX=== #
@@ -46,7 +47,14 @@ def root(request: Request):
     context = {"request": request}
     return templates.TemplateResponse("index.html", context, status_code=200)
 
-@app.get("/meme")
+
+# ===MEME=== #
+@app.get("/meme", response_class=HTMLResponse)
+def mem(request: Request):
+    context = {"request": request}
+    return templates.TemplateResponse("meme.html", context, status_code=200)
+
+@app.get("/get-meme")
 async def call_meme_api():
     logger.info("Meme requested")
     res = await api.get("http://meme-api.com/gimme")
@@ -68,15 +76,21 @@ def do_login(username: Annotated[str, Form(...)], password: Annotated[str, Form(
 
     if user not in db:
         logger.info("User not found")
-        return Response(status_code=401)
+        return HTMLResponse("<div id='error' hx-swap-oob='true'>Login failed!</div>")
+        # return HTMLResponse("<div id='error' hx-swap-oob='true'>Login failed!</div>", status_code=401)
     if db[db.index(user)].password != user.password:
         logger.info("Incorrect password")
-        return Response(status_code=401)
-    
-    return Response(status_code=200)
+        return HTMLResponse("<div id='error' hx-swap-oob='true'>Login failed!</div>")
+
+    return Response("Login Successful!", status_code=200)
 
 
 # ===REGISTRATION=== #
+@app.get("/register", response_class=HTMLResponse)
+def get_login_page(request: Request):
+    context = {"request": request}
+    return templates.TemplateResponse("register.html", context, status_code=200)
+
 @app.post("/register")
 def put_in_db(username: Annotated[str, Form(...)], password: Annotated[str, Form(...)]):
     user = User(username=username, password=password)
@@ -84,33 +98,35 @@ def put_in_db(username: Annotated[str, Form(...)], password: Annotated[str, Form
 
     if user in db:
         logger.info(f"user already exists: {user}")
-        return Response(status_code=409)
+        return HTMLResponse("<div id='error' hx-swap-oob='true'>User already exists!</div>")
     
     db.append(user)
 
-    return Response(status_code=200)
+    return Response("User registered!", status_code=200)
 
+
+# ===MACHINE LEARNING=== #
+@app.get("/ml")
+def initialize_ml_model():
+    load_model()
+    return Response(status_code=200)
 
 @app.post("/ml/init")
 def initialize_ml_model():
     load_model()
     return Response(status_code=200)
 
-
-# ===INFERENCE=== #
 @app.post("/ml/inference")
 def inference(data: str):
     model = load_model()
     return model(data)
 
 
-
-
 @lru_cache() # loads model to cache and return cached value
 def load_model():
-    # logger.info("Loading ML model...")
-    # pipeline = transformers.pipeline("text-classification", model="andreas122001/roberta-wiki-detector")
-    return
+    logger.info("Loading ML model...")
+    pipeline = transformers.pipeline("text-classification", model="andreas122001/roberta-wiki-detector")
+    return pipeline
 
 
 
