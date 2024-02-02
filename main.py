@@ -10,6 +10,8 @@ import transformers
 from dataclasses import dataclass
 import http3
 import json
+import time
+import asyncio
 
 # Setup http3 client for external APIs
 api = http3.AsyncClient()
@@ -106,26 +108,50 @@ def put_in_db(username: Annotated[str, Form(...)], password: Annotated[str, Form
 
 
 # ===MACHINE LEARNING=== #
+
+# This is fine for now
+model = None # ml model
+task = None # model-loading task
+
 @app.get("/ml")
-def initialize_ml_model():
-    load_model()
-    return Response(status_code=200)
+def get_ml_page(request: Request):
+    context = {"request": request}
+    return templates.TemplateResponse("ml.html", context, status_code=200)
 
 @app.post("/ml/init")
-def initialize_ml_model():
-    load_model()
-    return Response(status_code=200)
+async def initialize_ml_model():
+    global model, task
+    if not model and not task:
+        task = asyncio.create_task(load_model())
+        return HTMLResponse("""        
+            <div
+                hx-post="/ml/init"
+                hx-trigger="load delay:2s"
+                hx-swap="outerHTML">
+            Loading model...
+            </div>
+            """)
+    else:
+        return Response("Model ready!")
 
 @app.post("/ml/inference")
 def inference(data: str):
-    model = load_model()
-    return model(data)
+    global model
+    res = model(data)
+    return HTMLResponse(f"<div> Prediction: {res.label} <br> </div>")
 
+# Helpers
+async def load_model():
+    global model
+    if not model:
+        logger.info("Loading ML model...")
+        model = await load_model_cache()
+    logger.info(f"Model loaded!")
 
 @lru_cache() # loads model to cache and return cached value
-def load_model():
-    logger.info("Loading ML model...")
-    pipeline = transformers.pipeline("text-classification", model="andreas122001/roberta-wiki-detector")
+async def load_model_cache():
+    logger.info("Retrieving ML model...")
+    pipeline = await asyncio.create_task(transformers.pipeline("text-classification", model="andreas122001/roberta-wiki-detector"))
     return pipeline
 
 
