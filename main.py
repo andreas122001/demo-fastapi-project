@@ -1,17 +1,16 @@
 from typing import Annotated
 from fastapi import FastAPI, Request, Form, HTTPException
-from fastapi.responses import HTMLResponse, JSONResponse, Response
+from fastapi.responses import HTMLResponse, JSONResponse, Response, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import logging
 from functools import lru_cache
 from pydantic import BaseModel
 import transformers
-from dataclasses import dataclass
 import http3
 import json
-import time
 import asyncio
+from concurrent.futures import ProcessPoolExecutor
 
 # Setup http3 client for external APIs
 api = http3.AsyncClient()
@@ -109,6 +108,9 @@ def put_in_db(username: Annotated[str, Form(...)], password: Annotated[str, Form
 
 # ===MACHINE LEARNING=== #
 
+# ProcessPool
+pool = ProcessPoolExecutor(max_workers=1)
+
 # This is fine for now
 model = None # ml model
 task = None # model-loading task
@@ -135,29 +137,31 @@ async def initialize_ml_model():
         return Response("Model ready!")
 
 @app.post("/ml/inference")
-def inference(data: Annotated[str, Form(...)]):
+async def inference(data: Annotated[str, Form(...)]):
     global model
-    if model:
-        logger.info("Predicting...")
-        res = model(data)
-    else:
+    if not model:
         return Response("Model not loaded.")
+    
+    logger.info("Predicting...")
+    res = model(data)[0]
     logger.info(f"Result: {res}")
-    return HTMLResponse(f"<div> Prediction: {res.label} <br> </div>")
+    return HTMLResponse(f"<div> Prediction: {res['label']} <br> Confidence: {res['score']:.3f} </div>")
 
 # Helpers
 async def load_model():
     global model
     if not model:
         logger.info("Loading ML model...")
-        model = await load_model_cache()
+        try:
+            model = await load_model_cache()
+        except asyncio.CancelledError:
+            logger.warning("Model loading task canceled.")
     logger.info(f"Model loaded!")
 
 @lru_cache() # loads model to cache and return cached value
 async def load_model_cache():
     logger.info("Retrieving ML model...")
-    pipeline = await asyncio.create_task(transformers.pipeline("text-classification", model="andreas122001/roberta-wiki-detector"))
-    return pipeline
+    return transformers.pipeline("text-classification", model="andreas122001/roberta-wiki-detector")
 
 
 
